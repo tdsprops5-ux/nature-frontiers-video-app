@@ -118,7 +118,7 @@ class VideoGenerator {
       if (onProgress) onProgress('Creating high-contrast visual effects...');
 
       // Create a test video using FFmpeg with color sources and filters
-      // This creates a high-contrast abstract representation
+      // This creates a high-contrast abstract representation with Nature Frontiers watermark
       const [width, height] = resolution.split('x').map(Number);
 
       // Use FFmpeg's lavfi filter to generate a color source with effects
@@ -127,9 +127,13 @@ class VideoGenerator {
       const preset = duration > 10 ? 'ultrafast' : 'fast';
       const crf = duration > 10 ? '28' : '23';
       
-      const ffmpegCommand = `ffmpeg -f lavfi -i color=c=blue:s=${outputRes}:r=${fps} -vf "eq=contrast=1.5:saturation=1.3:brightness=0.1" -t ${duration} -c:v libx264 -preset ${preset} -crf ${crf} -pix_fmt yuv420p -y "${outputPath}"`;
+      // Add watermark text "Nature Frontiers" at bottom right corner
+      // Using drawtext filter with shadow for better visibility
+      const watermarkFilter = `eq=contrast=1.5:saturation=1.3:brightness=0.1,drawtext=text='Nature Frontiers':fontcolor=white:fontsize=24:box=1:boxcolor=black@0.7:x=w-tw-10:y=h-th-10:shadowcolor=black:shadowx=2:shadowy=2`;
+      
+      const ffmpegCommand = `ffmpeg -f lavfi -i color=c=blue:s=${outputRes}:r=${fps} -vf "${watermarkFilter}" -t ${duration} -c:v libx264 -preset ${preset} -crf ${crf} -pix_fmt yuv420p -y "${outputPath}"`;
 
-      if (onProgress) onProgress('Starting FFmpeg process...');
+      if (onProgress) onProgress('Starting FFmpeg process with Nature Frontiers watermark...');
       console.log('FFmpeg command:', ffmpegCommand);
 
       const { exec } = require('child_process');
@@ -143,7 +147,7 @@ class VideoGenerator {
           return;
         }
 
-        if (onProgress) onProgress('Video rendering complete!');
+        if (onProgress) onProgress('Video rendering complete with Nature Frontiers branding!');
         
         if (includeVoiceOver) {
           if (onProgress) onProgress('Adding voice-over narration...');
