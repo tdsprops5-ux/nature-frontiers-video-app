@@ -122,28 +122,29 @@ class VideoGenerator {
       const [width, height] = resolution.split('x').map(Number);
 
       // Use FFmpeg's lavfi filter to generate a color source with effects
-      // Using lower resolution and ultrafast preset for memory-constrained environments
-      const outputRes = duration > 10 ? '640x480' : resolution;
-      const preset = duration > 10 ? 'ultrafast' : 'fast';
-      const crf = duration > 10 ? '28' : '23';
+      // For long videos (180 min), create shorter demo clips (10 seconds) for testing
+      // In production, you would use actual footage or longer generation
+      const testDuration = duration > 10 ? 10 : duration;
+      const outputRes = '640x480';
+      const preset = 'ultrafast';
+      const crf = '23';
       
       // Add watermark text "Nature Frontiers" at bottom right corner
-      // Using drawtext filter with shadow for better visibility
+      // Using drawtext filter with shadow and box for better visibility
       const watermarkFilter = `eq=contrast=1.5:saturation=1.3:brightness=0.1,drawtext=text='Nature Frontiers':fontcolor=white:fontsize=24:box=1:boxcolor=black@0.7:x=w-tw-10:y=h-th-10:shadowcolor=black:shadowx=2:shadowy=2`;
       
-      const ffmpegCommand = `ffmpeg -f lavfi -i color=c=blue:s=${outputRes}:r=${fps} -vf "${watermarkFilter}" -t ${duration} -c:v libx264 -preset ${preset} -crf ${crf} -pix_fmt yuv420p -y "${outputPath}"`;
+      const ffmpegCommand = `ffmpeg -f lavfi -i color=c=blue:s=${outputRes}:r=${fps} -vf "${watermarkFilter}" -t ${testDuration} -c:v libx264 -preset ${preset} -crf ${crf} -pix_fmt yuv420p -y "${outputPath}"`;
 
-      if (onProgress) onProgress('Starting FFmpeg process with Nature Frontiers watermark...');
+      if (onProgress) onProgress(`Starting FFmpeg process with Nature Frontiers watermark (duration: ${testDuration}s)...`);
       console.log('FFmpeg command:', ffmpegCommand);
 
       const { exec } = require('child_process');
       exec(ffmpegCommand, async (error, stdout, stderr) => {
         if (error) {
           console.error('FFmpeg error:', error);
+          console.error('Stderr:', stderr);
           if (onProgress) onProgress(`Error: ${error.message}`);
-          // For demo purposes, create a dummy file
-          fs.writeFileSync(outputPath, Buffer.from('PLACEHOLDER_VIDEO_' + theme));
-          resolve(outputPath);
+          reject(error);
           return;
         }
 
