@@ -11,6 +11,7 @@ const PORT = 3001;
 app.use(cors());
 app.use(express.json());
 app.use('/outputs', express.static(path.join(__dirname, '../outputs')));
+app.use(express.static(path.join(__dirname, '../frontend')));
 
 // In-memory storage for batch jobs (in production, use a database)
 const batchJobs = new Map();
